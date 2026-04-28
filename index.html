@@ -68,9 +68,13 @@
     font-size: 18px;
     font-weight: 900;
     text-transform: uppercase;
-    border-bottom: 2px solid var(--black);
-    display: inline-block;
-    margin-bottom: 10px;
+    /* --- 修改處 --- */
+    /* border-bottom: 2px solid var(--black); */ /* 這是 CSS 的隱藏語法 */
+    display: block;     /* 從 inline-block 改為 block，標題才會佔滿整行空間 */
+    text-align: center; /* 讓文字在該空間內置中 */
+    /* -------------- */
+    
+    margin-bottom: 15px;
 }
 
 .intro-box p {
@@ -237,8 +241,8 @@
 <div class="container">
     <h2>Subtitle Cutter</h2>
     <div class="intro-box">
-        <h3>💡 工具說明 & 使用情境</h3>
-        <p>這是一款專為 <b>Reels / TikTok 短影音</b> 設計的字幕自動分行工具。當你準備好長篇腳本時，本工具能智慧判斷語句結構（如：連接詞、時間點），將文字切成最適合閱讀的長度。</p>
+        <h3> 工具說明 & 使用情境</h3>
+        <p>這是一款專為 <b>短影音</b> 設計的腳本自動分行工具。當你貼上長篇腳本時，本工具能自動判斷語句結構（如：連接詞、時間點），將文字切成最適合閱讀的長度。</p>
         
         <ul>
             <li><b>01 貼上文字：</b> 將原始腳本直接貼入下方框內。</li>
