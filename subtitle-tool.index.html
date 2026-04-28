@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>影片文稿切分器 Pro</title>
+    <style>
+        /* [未來修改顏色處] */
+        :root { 
+            --primary: #2638FF; 
+            --success: #00EEB2; 
+            --black: #000000;
+            --bg: #ffffff; 
+        }
+
+        /* --- Brutalism UI Reset --- */
+        body { 
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex; 
+            justify-content: center; 
+            color: var(--black);
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 750px; 
+            background: white; 
+            padding: 40px; 
+            border: 3px solid var(--black); 
+            box-shadow: 12px 12px 0px var(--black); /* 硬陰影 */
+            position: relative; 
+        }
+
+        h2 { 
+            text-align: left; 
+            margin-top: 0; 
+            font-size: 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            border-bottom: 3px solid var(--black);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .section-label { 
+            font-weight: 800; 
+            font-size: 16px; 
+            margin-bottom: 10px; 
+            text-transform: uppercase;
+        }
+
+        /* --- Input & Textarea Style --- */
+        textarea { 
+            width: 100%; 
+            border: 3px solid var(--black); 
+            border-radius: 0px; 
+            font-size: 18px; 
+            padding: 15px; 
+            box-sizing: border-box; 
+            line-height: 1.5; 
+            background: white; 
+            font-family: inherit;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        textarea:focus { 
+            outline: none; 
+            background: #fff;
+            box-shadow: 6px 6px 0px var(--primary);
+        }
+
+        #output { 
+            height: 480px; 
+            border: 3px solid var(--black); 
+            background: white; 
+            white-space: pre; 
+            font-weight: 500;
+        }
+
+        /* --- Settings Grid --- */
+        .settings { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin: 30px 0; 
+        }
+
+        .setting-item { 
+            border: 3px solid var(--black);
+            padding: 15px; 
+            background: white;
+            box-shadow: 4px 4px 0px var(--black);
+        }
+
+        .setting-item label { 
+            display: block; 
+            font-size: 12px; 
+            font-weight: 900;
+            margin-bottom: 8px; 
+            text-transform: uppercase;
+        }
+
+        .setting-item input { 
+            width: 100%; 
+            border: 2px solid var(--black); 
+            padding: 8px; 
+            font-size: 18px;
+            font-weight: 800;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* --- Brutalist Buttons --- */
+        .btn-run, .btn-copy { 
+            width: 100%; 
+            border: 3px solid var(--black); 
+            padding: 20px; 
+            font-size: 20px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            position: relative;
+            transition: all 0.1s;
+            margin-bottom: 20px;
+        }
+
+        .btn-run { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 6px 6px 0px var(--black);
+        }
+
+        .btn-copy { 
+            background: var(--success); 
+            color: var(--black); 
+            box-shadow: 6px 6px 0px var(--black);
+            margin-top: 20px;
+        }
+
+        .btn-run:hover, .btn-copy:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px var(--black);
+        }
+
+        .btn-run:active, .btn-copy:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px var(--black);
+        }
+
+        /* --- Info & Footer --- */
+        .guide { 
+            font-size: 13px; 
+            color: var(--black); 
+            background: #FFFAF0; 
+            padding: 20px; 
+            border: 2px solid var(--black);
+            margin-top: 20px; 
+            line-height: 1.6; 
+        }
+
+        kbd { 
+            background: #000; 
+            color: #fff;
+            padding: 2px 6px; 
+            font-weight: bold;
+            font-size: 11px;
+            margin: 0 2px;
+        }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 3px solid var(--black);
+        }
+
+        .footer-credit img {
+            height: 40px; /* 您可以根據需求調整 logo 高度 */
+            display: inline-block;
+            vertical-align: middle;
+            transition: transform 0.2s;
+        }
+        
+        .footer-credit a:hover img {
+            transform: rotate(-3deg) scale(1.1);
+        }
+
+        .footer-text {
+            display: block;
+            font-weight: 900;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Subtitle Cutter</h2>
+    
+    <div class="section-label">01. Paste Script</div>
+    <textarea id="inputText" style="height: 120px;" placeholder="Paste your text here..."></textarea>
+
+    <div class="settings">
+        <div class="setting-item">
+            <label>Max Line</label>
+            <input type="number" id="maxLen" value="15">
+        </div>
+        <div class="setting-item">
+            <label>Concept</label>
+            <input type="number" id="conceptMin" value="7">
+        </div>
+        <div class="setting-item">
+            <label>Temporal</label>
+            <input type="number" id="timeMin" value="7">
+        </div>
+    </div>
+
+    <button class="btn-run" onclick="processText()">Analyze & Split ↓</button>
+
+    <div class="section-label" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>02. Smart Editor</span>
+        <span style="font-size: 12px; background: #000; color: #fff; padding: 2px 8px;">Undo Ready</span>
+    </div>
+    <textarea id="output" placeholder="Output will be here..."></textarea>
+
+    <button class="btn-copy" onclick="copyResult()">Copy Result</button>
+    
+    <div class="guide">
+        <b>HOW TO USE:</b><br>
+        • <kbd>Enter</kbd> Smart Flow: Breaks line and merges downstream text.<br>
+        • <kbd>Shift</kbd>+<kbd>Enter</kbd> Normal Break.<br>
+        • <kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd> Undo step-by-step.
+    </div>
+
+    <div class="footer-credit">
+        <span class="footer-text">Made with raw power by</span>
+        <a href="https://www.instagram.com/peiya.8/" target="_blank">
+            <!-- 將下方 src 替換為您的 logo 檔案路徑或 base64 碼 -->
+            <img src="logo.jpeg" alt="PE!YA">
+        </a>
+    </div>
+</div>
+
+<script>
+/* 以下為原本功能，完全未變動 */
+let historyStack = [];
+const outputArea = document.getElementById('output');
+
+function saveState() {
+    if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== outputArea.value) {
+        historyStack.push(outputArea.value);
+        if (historyStack.length > 50) historyStack.shift();
+    }
+}
+
+function undo() {
+    if (historyStack.length > 1) {
+        historyStack.pop();
+        outputArea.value = historyStack[historyStack.length - 1];
+    }
+}
+
+function processText() {
+    const input = document.getElementById('inputText').value;
+    const MAX_LEN = parseInt(document.getElementById('maxLen').value) || 15;
+    const C_MIN = parseInt(document.getElementById('conceptMin').value) || 7;
+    const T_MIN = parseInt(document.getElementById('timeMin').value) || 7;
+
+    saveState();
+
+    let stage1 = input.replace(/[，。？：！；、]/g, '\n');
+    stage1 = stage1.replace(/([^a-zA-Z0-9])\s+([^a-zA-Z0-9])/g, '$1\n$2');
+
+    let lines = stage1.split('\n');
+    let processed = [];
+
+    const conjs = ["或是", "或者", "和", "跟", "與", "及", "或"];
+    const times = ["前", "中", "後", "時"];
+
+    lines.forEach(line => {
+        let text = line.trim().replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, '');
+        if (!text) return;
+
+        function deepSplit(str) {
+            if (str.length <= 5) return [str];
+
+            for (let c of conjs) {
+                let idx = str.indexOf(c);
+                if (idx !== -1) {
+                    let partA = str.substring(0, idx);
+                    let partB = str.substring(idx); 
+                    if (partA.length >= C_MIN && partB.length >= C_MIN) {
+                        return [...deepSplit(partA), ...deepSplit(partB)];
+                    }
+                }
+            }
+
+            for (let t of times) {
+                let idx = str.indexOf(t);
+                if (idx > 1 && idx < str.length - 1) {
+                    if (t === "時" && str[idx+1] === "間") continue;
+                    let partA = str.substring(0, idx + 1);
+                    let partB = str.substring(idx + 1);
+                    if (partB.length >= T_MIN) {
+                        return [partA, ...deepSplit(partB)];
+                    }
+                }
+            }
+
+            if (str.length > MAX_LEN) {
+                return [str.substring(0, MAX_LEN), ...deepSplit(str.substring(MAX_LEN))];
+            }
+            return [str];
+        }
+        processed.push(...deepSplit(text));
+    });
+
+    outputArea.value = processed.map(l => l.trim()).filter(l => l).join('\n');
+    saveState();
+}
+
+outputArea.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+        return;
+    }
+
+    if (e.key === 'Enter') {
+        if (e.shiftKey) {
+            saveState();
+            return; 
+        }
+        e.preventDefault();
+        saveState();
+
+        const start = this.selectionStart;
+        const val = this.value;
+        const lines = val.split('\n');
+        
+        let currentPos = 0;
+        let lineIdx = -1;
+
+        for (let i = 0; i < lines.length; i++) {
+            if (start <= currentPos + lines[i].length) {
+                lineIdx = i;
+                break;
+            }
+            currentPos += lines[i].length + 1;
+        }
+
+        if (lineIdx !== -1) {
+            const relPos = start - currentPos;
+            const textLeft = lines[lineIdx].substring(0, relPos);
+            const textRight = lines[lineIdx].substring(relPos);
+            const nextLine = lines[lineIdx + 1] || "";
+
+            lines[lineIdx] = textLeft.trim();
+            lines[lineIdx + 1] = (textRight + nextLine).trim();
+            
+            if (lineIdx === lines.length - 1 && textRight) {
+                lines.push(textRight);
+                lines[lineIdx] = textLeft;
+            }
+
+            this.value = lines.filter((l, i) => !(i > lineIdx && l === "" && i === lines.length-1)).join('\n');
+            const nextLineStart = currentPos + lines[lineIdx].length + 1;
+            this.setSelectionRange(nextLineStart, nextLineStart);
+            saveState();
+        }
+    }
+});
+
+outputArea.addEventListener('input', saveState);
+
+function copyResult() {
+    outputArea.select();
+    document.execCommand('copy');
+    const btn = document.querySelector('.btn-copy');
+    btn.innerText = '✅ COPIED!';
+    setTimeout(() => btn.innerText = 'Copy Result', 2000);
+}
+
+window.onload = saveState;
+</script>
+
+</body>
+</html>
